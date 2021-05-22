@@ -93,9 +93,9 @@ if __name__ == '__main__':
     else:
         api_answer = read_list(conf.api_key)
         if not api_answer['success'] == True:
-            print(docs, file=sys.stderr)
+            print(api_answer, file=sys.stderr)
             sys.exit(1)
-        data = docs['data'][0]['result']
+        data = api_answer['data'][0]['result']
 
     data = filter_receipts(data, conf)
     data = format_receipts(data, conf)
