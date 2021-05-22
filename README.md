@@ -67,9 +67,11 @@ $ novaposhta --paid --delivered
 $ novaposhta --delivered --ready
 ```
 
+I would like to add more states, like 'on the way' (and display estimated schedule), etc. etc. Unfortunately I have no data to validate against. If somebody can provide debug json dumps (see below) with their receipts of different states it will help a lot. You should, of course, anonymize embedded data as far as needed.
+
 # HACKING
 
-There is no good in hitting NP API frequently but it may happen during code development and debug. It's better to use static data in such case. Data can be saved by:
+There is no good in hitting NP API frequently but it may happen during code development and debug. It's better to use static data in such case. Debug dump can be saved by:
 
 ```
 $ npcli --format=json --raw > ~/np-debug.json
