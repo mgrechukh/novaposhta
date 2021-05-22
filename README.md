@@ -10,6 +10,7 @@ $ ./novaposhta --api-key=XXXXXX
 Options: 
 
 --format=json (tabular is default)
+
 --raw (to output all fields in requested format. By default, only human-readable subset is rendered)
 
 Optinally, you can store API key in pass(1) and specify path to stored token as:
