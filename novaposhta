@@ -13,6 +13,7 @@ def get_config():
     parser.add_argument('--api-key', required = True, type = maybe_pass)
     parser.add_argument('--format', default = 'tabular')
     parser.add_argument('--raw', default = False, action = 'store_true')
+    parser.add_argument('--tablefmt', default = 'presto')
     return parser.parse_args()
 
 def filter_data(data, config):
@@ -41,6 +42,6 @@ if __name__ == '__main__':
         result = list(filter_data(result, conf))
 
     if conf.format == 'tabular':
-        print(tabulate.tabulate(result))
+        print(tabulate.tabulate(result, headers="keys", tablefmt=conf.tablefmt))
     elif conf.format == 'json':
         json.dump(result, sys.stdout, ensure_ascii=False)
