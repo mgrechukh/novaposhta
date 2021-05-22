@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 
-import requests, argparse, subprocess, urllib, json, sys, tabulate, collections, functools, os
+import requests
+import argparse
+import subprocess
+import urllib
+import json
+import sys
+import tabulate
+import collections
+import functools
+import os
 
 
 def maybe_pass(key):
     if not key.startswith('pass://'):
         return key
     return subprocess.check_output(['pass', 'show', key[7:]]).strip()
-    
+
+
 def maybe_file(key):
     if key.startswith('file://'):
         realname = os.path.expandvars(key[7:])
@@ -16,45 +26,80 @@ def maybe_file(key):
     else:
         return key
 
+
 def compose(*fs):
     def comp(f, g):
         return lambda x: g(f(x))
     return functools.reduce(comp, fs, lambda x: x)
 
+
 def get_config():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--api-key', default = "file://$HOME/.novaposhta-cli", type = compose(maybe_file, maybe_pass))
-    parser.add_argument('--format', default = 'tabular')
-    parser.add_argument('--raw', default = False, action = 'store_true')
-    parser.add_argument('--tablefmt', default = 'presto')
+    parser.add_argument('--api-key', default="file://$HOME/.novaposhta-cli",
+                        type=compose(maybe_file, maybe_pass))
+    parser.add_argument(
+        '--format', help='table or json output', default='tabular')
+    parser.add_argument(
+        '--debug-file', help='read items from given file, skip API')
+    parser.add_argument('--raw', default=False,
+                        help='output all fields', action='store_true')
+    parser.add_argument('--tablefmt', default='presto')
+    parser.add_argument('--ready', dest='state_filter',
+                        action='append_const', const="7")
+    parser.add_argument('--paid', dest='state_filter',
+                        action='append_const', const="11")
+    parser.add_argument('--delivered', dest='state_filter',
+                        action='append_const', const="9")
     return parser.parse_args()
 
-def filter_data(data, config):
+
+def filter_receipts(data, config):
     for i in data:
+        if not config.state_filter or i['TrackingStatusCode'] in config.state_filter:
+            yield i
+
+
+def format_receipts(data, config):
+    for i in data:
+        if config.raw:
+            yield i
+
+        if i['TrackingStatusCode'] == 7:
+            status = '{TrackingStatusName} - {RecipientAddressDescription}'.format(
+                **i)
+        else:
+            status = i['TrackingStatusName']
+
         info = collections.OrderedDict(
-            Number = i['Number'],
-            Status = i['TrackingStatusName'],
-            CargoDescription = i['CargoDescription'],
-            Money = i['MoneyTransferAmount'],
-            From = '{SenderName} ({CitySenderDescription})'.format(**i),
+            Number=i['Number'],
+            Status=status,
+            CargoDescription=i['CargoDescription'],
+            Money=i['MoneyTransferAmount'],
+            From='{SenderName} ({CitySenderDescription})'.format(**i),
         )
         yield info
 
+
 def read_list(api_key):
-    return  requests.post('https://api.novaposhta.ua/v2.0/json/', json = {"apiKey": api_key, "modelName":"InternetDocument","calledMethod":"getIncomingDocumentsByPhone","methodProperties":{"GetFullList": "1"}}).json()
+    return requests.post('https://api.novaposhta.ua/v2.0/json/', json={"apiKey": api_key, "modelName": "InternetDocument", "calledMethod": "getIncomingDocumentsByPhone", "methodProperties": {"GetFullList": "1"}}).json()
+
 
 if __name__ == '__main__':
     conf = get_config()
-    docs = read_list(conf.api_key)
-    if not docs['success'] == True:
-        print(docs, file = sys.stderr)
-        sys.exit(1)
+    if conf.debug_file:
+        with open(conf.debug_file) as f:
+            data = json.load(f)
+    else:
+        api_answer = read_list(conf.api_key)
+        if not api_answer['success'] == True:
+            print(docs, file=sys.stderr)
+            sys.exit(1)
+        data = docs['data'][0]['result']
 
-    result = docs['data'][0]['result']
-    if not conf.raw:
-        result = list(filter_data(result, conf))
+    data = filter_receipts(data, conf)
+    data = format_receipts(data, conf)
 
     if conf.format == 'tabular':
-        print(tabulate.tabulate(result, headers="keys", tablefmt=conf.tablefmt))
+        print(tabulate.tabulate(data, headers="keys", tablefmt=conf.tablefmt))
     elif conf.format == 'json':
-        json.dump(result, sys.stdout, ensure_ascii=False)
+        json.dump(list(data), sys.stdout, ensure_ascii=False)
