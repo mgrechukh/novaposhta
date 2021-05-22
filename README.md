@@ -1,6 +1,6 @@
 # Novaposhta API
 
-First, create or found existing api key
+First, create or find existing api key
 
 https://new.novaposhta.ua/dashboard/settings/developers
 
