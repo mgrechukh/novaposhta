@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+
+import requests, argparse, subprocess, urllib, json, sys, tabulate, collections
+
+
+def maybe_pass(key):
+    if not key.startswith('pass://'):
+        return key
+    return subprocess.check_output(['pass', 'show', key[7:]]).strip()
+    
+def get_config():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--api-key', required = True, type = maybe_pass)
+    parser.add_argument('--format', default = 'tabular')
+    parser.add_argument('--raw', default = False, action = 'store_true')
+    return parser.parse_args()
+
+def filter_data(data, config):
+    for i in data:
+        info = collections.OrderedDict(
+            Number = i['Number'],
+            Status = i['TrackingStatusName'],
+            CargoDescription = i['CargoDescription'],
+            Money = i['MoneyTransferAmount'],
+            From = '{SenderName} ({CitySenderDescription})'.format(**i),
+        )
+        yield info
+
+def read_list(api_key):
+    return  requests.post('https://api.novaposhta.ua/v2.0/json/', json = {"apiKey": api_key, "modelName":"InternetDocument","calledMethod":"getIncomingDocumentsByPhone","methodProperties":{"GetFullList": "1"}}).json()
+
+if __name__ == '__main__':
+    conf = get_config()
+    docs = read_list(conf.api_key)
+    if not docs['success'] == True:
+        print(docs, file = sys.stderr)
+        sys.exit(1)
+
+    result = docs['data'][0]['result']
+    if not conf.raw:
+        result = list(filter_data(result, conf))
+
+    if conf.format == 'tabular':
+        print(tabulate.tabulate(result))
+    elif conf.format == 'json':
+        json.dump(result, sys.stdout, ensure_ascii=False)
