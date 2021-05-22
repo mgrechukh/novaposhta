@@ -1,41 +1,40 @@
-# novaposhta
+# Novaposhta API
 
 First, create or found existing api key
 
 https://new.novaposhta.ua/dashboard/settings/developers
 
+Use it as goes:
 
 ```
 $ ./novaposhta [--api-key=XXXXXX]
 ```
 
-Options: 
+See below for different methods to store API key securely.
 
---format=json - (tabular is default)
+# Options: 
 
---raw - (to output all fields in requested format. By default, only human-readable subset is rendered)
+- --format=json - (tabular is default)
 
---api-key - is not required if token had been stored in file as described below.
+- --raw - (to output all fields in requested format. By default, only human-readable subset is rendered)
 
-You can store API key to pass(1). KeepassXC backend may also be implemented, if somebody interested in.
+- --api-key - actually not required if token had been stored in file as described below
 
-Then specify path to stored token in argument:
+You can store API key to pass(1). KeepassXC backend may also be implemented, if somebody interested in. Then specify path to stored token in argument:
 
 
 ```
 $ ./novaposhta --api-key=pass://private/mgr/novaposhta 
 ```
 
-Or write it to file:
+Or write token to file In fact $HOME/.novaposhta-cli is hardcoded default value to use if no
+argument has been specified.
 
 ```
 $ ./novaposhta --api-key=file://$HOME/.novaposhta-cli
 ```
 
-In fact $HOME/.novaposhta-cli is hardcoded default value to use if no
-argument has been specified.
-
-File can in turn also contain either plain-txt token or link to pass. Example:
+File in turn can also contain either plain-text token or link to pass. Example:
 
 ```
 $ cat ~/.novaposhta-cli
