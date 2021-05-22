@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import requests, argparse, subprocess, urllib, json, sys, tabulate, collections
+import requests, argparse, subprocess, urllib, json, sys, tabulate, collections, functools, os
 
 
 def maybe_pass(key):
@@ -8,9 +8,22 @@ def maybe_pass(key):
         return key
     return subprocess.check_output(['pass', 'show', key[7:]]).strip()
     
+def maybe_file(key):
+    if key.startswith('file://'):
+        realname = os.path.expandvars(key[7:])
+        with open(realname) as f:
+            return f.read().strip()
+    else:
+        return key
+
+def compose(*fs):
+    def comp(f, g):
+        return lambda x: g(f(x))
+    return functools.reduce(comp, fs, lambda x: x)
+
 def get_config():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--api-key', required = True, type = maybe_pass)
+    parser.add_argument('--api-key', default = "file://$HOME/.novaposhta-cli", type = compose(maybe_file, maybe_pass))
     parser.add_argument('--format', default = 'tabular')
     parser.add_argument('--raw', default = False, action = 'store_true')
     parser.add_argument('--tablefmt', default = 'presto')
