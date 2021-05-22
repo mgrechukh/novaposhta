@@ -43,13 +43,14 @@ def get_config():
         '--debug-file', help='read items from given file, skip API')
     parser.add_argument('--raw', default=False,
                         help='output all fields', action='store_true')
-    parser.add_argument('--tablefmt', default='presto')
+    parser.add_argument('--tablefmt', default='presto',
+                        help='check pypi tabulate for available table styles)')
     parser.add_argument('--ready', dest='state_filter',
-                        action='append_const', const="7")
+                        action='append_const', const="7", help='filter by status')
     parser.add_argument('--paid', dest='state_filter',
-                        action='append_const', const="11")
+                        action='append_const', const="11", help='filter by status')
     parser.add_argument('--delivered', dest='state_filter',
-                        action='append_const', const="9")
+                        action='append_const', const="9", help='filter by status')
     return parser.parse_args()
 
 
