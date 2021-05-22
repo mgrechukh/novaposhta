@@ -54,11 +54,13 @@ Number | Status                                                     | CargoDescr
 
 By default, all active receipts are shown. I.e. no filtering applied client side except of server-side visibility. With filtering options one can limit output to only given states:
 
---ready : delivered to post office
---paid : payment transferred to sender
---delivered : delivered to recipient (me)
+- --ready : delivered to post office
 
-Any combination of those is valid:
+- --paid : payment transferred to sender
+
+- --delivered : delivered to recipient (me)
+
+Any combination of those is pretty valid:
 
 ```
 $ novaposhta --paid --delivered
