@@ -50,3 +50,31 @@ $ novaposhta
 Number | Status                                                     | CargoDescription            |   Money | From
 ```
 
+# FILTERING
+
+By default, all active receipts are shown. I.e. no filtering applied client side except of server-side visibility. With filtering options one can limit output to only given states:
+
+--ready : delivered to post office
+--paid : payment transferred to sender
+--delivered : delivered to recipient (me)
+
+Any combination of those is valid:
+
+```
+$ novaposhta --paid --delivered
+$ novaposhta --delivered --ready
+```
+
+# HACKING
+
+There is no good in hitting NP API frequently but it may happen during code development and debug. It's better to use static data in such case. Data can be saved by:
+
+```
+$ npcli --format=json --raw > ~/np-debug.json
+```
+
+Then use it instead of calling API by specifying --debug-file option:
+
+```
+$ npcli --debug-file ~/np-debug.json --delivered
+```
